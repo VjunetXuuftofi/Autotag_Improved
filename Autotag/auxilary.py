@@ -281,149 +281,150 @@ def determinetags(loans):
 
     print("Determining the tags that each loan should have.")
     tags = defaultdict(set)
-    for page in loans:
-        for loan in tqdm(page):
+    for loan in tqdm(loans):
+        try:
+            loanid = loan["id"]
             try:
-                loanid = loan["id"]
-                try:
-                    description = loan["description"]["texts"]["en"]
-                except KeyError:
-                    continue
-                use = loan["use"]
-                sector = loan["sector"]
-                activity = loan["activity"]
-                numborrowers = len(loan["borrowers"])
-                partner = loan["partner_id"]
-                country = loan["location"]["country"]
-                this_loan = tags[loanid]
-                if partner == 202:
-                    this_loan.add("8")
-                    this_loan.add("9")
-                    if "solar light" in description:
-                        this_loan.add("38")
-                if GetAge(description) and GetAge(description) >= 50:
-                        this_loan.add("13")
-                if activity == "Textiles":
-                    this_loan.add("26")
-                if sector == "Health":
-                    this_loan.add("27")
-                if sector == "Education":
-                    this_loan.add("18")
-                if partner == 219:  # Ruma
+                description = re.sub('<[^<]+?>', '', loan["description"])
+                loan["description"] = description
+            except KeyError:
+                continue
+            use = loan["use"]
+            sector = loan["sector"]["name"]
+            activity = loan["activity"]["name"]
+            numborrowers = len(loan["borrowers"])
+            partner = loan["partnerId"]
+            country = loan["geocode"]["country"]["name"]
+            this_loan = tags[loanid]
+            if partner == 202:
+                this_loan.add("8")
+                this_loan.add("9")
+                if "solar light" in description:
                     this_loan.add("38")
-                if partner in [311, 393] and "water filter" in use:
-                    this_loan.add("27")
-                    this_loan.add("9")
-                    this_loan.add("38")
-                if partner in [452, 322]:  # NEW, African Clean Energy
-                    this_loan.add("27")
-                    this_loan.add("9")
-                    this_loan.add("38")
-                if partner in [448, 295]:
-                    this_loan.add("8")
-                    this_loan.add("9")
-                if partner == 449:
-                    this_loan.add("8")
-                    this_loan.add("9")
-                    this_loan.add("36")
-                    this_loan.add("10")
-                if partner == 150 and (activity == "Farming" or
-                                                      activity == "Agriculture"):
-                    this_loan.add("8")
-                    this_loan.add("9")
-                if activity == "Used Clothing" or activity == "Used Shoes" or activity == "Bicycle Sales" \
-                        or activity == "Renewable Energy Products" or activity == "Recycled Materials" \
-                        or activity == "Recycling":
-                    this_loan.add("9")
-                if "solar" in use:
-                    this_loan.add("9")
-                    this_loan.add("38")
-                if partner == 438 and 2 <= numborrowers <= 9:
-                    this_loan.add("28")
-                if partner == 406:
-                    this_loan.add("27")
-                    this_loan.add("9")
-                if partner == 288:
-                    this_loan.add("10")
-                if partner == 329:
-                    this_loan.add("9")
-                    this_loan.add("35")
-                    this_loan.add("27")
-                if partner in [379, 305, 458]:
-                    this_loan.add("18")
-                    this_loan.add("37")
-                if "pagne" in use:
-                    this_loan.add("26")
-                if partner == 448:
-                    for term in ["coffee", "cacao", "cocoa", "bananas"]:
-                        if term in description:
-                            this_loan.add("36")
-                            this_loan.add("9")
-                            this_loan.add("8")
-                            break
-                if partner == 472:
-                    this_loan.add("9")
-                    this_loan.add("8")
-                if partner == 406:
-                    this_loan.add("27")
-                    this_loan.add("28")
-                if partner == 245 and sector == "Education":
-                    match = re.findall("([0-9]+)%", description)
-                    if len(match) > 0:
-                        percent = int(match[0][0])
-                        if percent >= 25:
-                            this_loan.add("37")
-                soup = BeautifulSoup(requests.get(
-                    "https://www.kiva.org/lend/" + str(loan["id"])).text,
-                                     "html.parser")
-                if soup.select("p.show-previous-loan-details"):
-                    this_loan.add("28")
-                if partner == 225:  # Novica
-                    continue
-                if country == "Jordan":
-                    this_loan.add("29")
+            if GetAge(description) and GetAge(description) >= 50:
+                    this_loan.add("13")
+            if activity == "Textiles":
+                this_loan.add("26")
+            if sector == "Health":
+                this_loan.add("27")
+            if sector == "Education":
+                this_loan.add("18")
+            if partner == 219:  # Ruma
+                this_loan.add("38")
+            if partner in [311, 393] and "water filter" in use:
+                this_loan.add("27")
+                this_loan.add("9")
+                this_loan.add("38")
+            if partner in [452, 322]:  # NEW, African Clean Energy
+                this_loan.add("27")
+                this_loan.add("9")
+                this_loan.add("38")
+            if partner in [448, 295]:
+                this_loan.add("8")
+                this_loan.add("9")
+            if partner == 449:
+                this_loan.add("8")
+                this_loan.add("9")
+                this_loan.add("36")
+                this_loan.add("10")
+            if partner == 150 and (activity == "Farming" or
+                                                  activity == "Agriculture"):
+                this_loan.add("8")
+                this_loan.add("9")
+            if activity == "Used Clothing" or activity == "Used Shoes" or activity == "Bicycle Sales" \
+                    or activity == "Renewable Energy Products" or activity == "Recycled Materials" \
+                    or activity == "Recycling":
+                this_loan.add("9")
+            if "solar" in use:
+                this_loan.add("9")
+                this_loan.add("38")
+            if partner == 438 and 2 <= numborrowers <= 9:
+                this_loan.add("28")
+            if partner == 406:
+                this_loan.add("27")
+                this_loan.add("9")
+            if partner == 288:
+                this_loan.add("10")
+            if partner == 329:
+                this_loan.add("9")
+                this_loan.add("35")
+                this_loan.add("27")
+            if partner in [379, 305, 458]:
+                this_loan.add("18")
+                this_loan.add("37")
+            if "pagne" in use:
+                this_loan.add("26")
+            if partner == 448:
+                for term in ["coffee", "cacao", "cocoa", "bananas"]:
+                    if term in description:
+                        this_loan.add("36")
+                        this_loan.add("9")
+                        this_loan.add("8")
+                        break
+            if partner == 472:
+                this_loan.add("9")
+                this_loan.add("8")
+            if partner == 406:
+                this_loan.add("27")
+                this_loan.add("28")
+            if partner == 245 and sector == "Education":
+                match = re.findall("([0-9]+)%", description)
+                if len(match) > 0:
+                    percent = int(match[0][0])
+                    if percent >= 25:
+                        this_loan.add("37")
+            soup = BeautifulSoup(requests.get(
+                "https://www.kiva.org/lend/" + str(loan["id"])).text,
+                                 "html.parser")
+            if soup.select("p.show-previous-loan-details"):
+                this_loan.add("28")
+            if partner == 225:  # Novica
+                continue
+            if country == "Jordan":
+                this_loan.add("29")
 
-                try:
-                    town = loan['location']['town']
-                except KeyError:
-                    town = ''
+            try:
+                town = loan['geocode']['city']
+            except KeyError:
+                town = ''
 
-                categorical = [{0: activity, 1: sector, 2: loan['location']['country_code'],
-                                3: town, 4: partner}]
+            categorical = [{0: activity, 1: sector,
+                            2: loan['geocode']['country']["isoCode"],
+                            3: town, 4: partner}]
 
-                numeric = [[int(loan['loan_amount']), int(loan['terms']['repayment_term'])]]
+            numeric = [[float(loan['loanAmount']), int(loan['terms']['lenderRepaymentTerm'])]]
 
-                borrowers = loan['borrowers']
-                if borrowers is not None:
-                    female = 0.
-                    for borrower in borrowers:
-                        female += borrower['gender'] == 'F'
-                    numeric[0].append(female/len(borrowers))
-                    numeric[0].append(len(borrowers))
-                else:
-                    continue
+            borrowers = loan['borrowers']
+            if borrowers is not None:
+                female = 0.
+                for borrower in borrowers:
+                    female += borrower['gender'] == 'female'
+                numeric[0].append(female/len(borrowers))
+                numeric[0].append(len(borrowers))
+            else:
+                continue
 
-                use_transformed = use_vect.transform([use])
-                description_transformed = description_vect.transform([description])
-                categorical = categorical_vect.transform(categorical).toarray()
-                base = np.hstack((categorical, numeric))
-                base_sparse = scipy.sparse.csr_matrix(base)
-                combined = scipy.sparse.csr_matrix(scipy.sparse.hstack((base_sparse, use_transformed,
-                                                                        description_transformed)))
-                predictions = clf.predict_proba(combined)
+            use_transformed = use_vect.transform([use])
+            description_transformed = description_vect.transform([description])
+            categorical = categorical_vect.transform(categorical).toarray()
+            base = np.hstack((categorical, numeric))
+            base_sparse = scipy.sparse.csr_matrix(base)
+            combined = scipy.sparse.csr_matrix(scipy.sparse.hstack((base_sparse, use_transformed,
+                                                                    description_transformed)))
+            predictions = clf.predict_proba(combined)
 
-                for i, taginfo in enumerate(machinetags):
-                    if not taginfo["ManualChecks"] or taginfo["ManualChecks"](loan):
-                        if predictions[i][0][1] > taginfo["Threshold"]:
-                            print("ML tag")
-                            this_loan.add(taginfo["ID"])
-                if "17" and "14" in this_loan:
-                    this_loan.remove("14")
-                if "17" in this_loan:
-                    this_loan.add("16")
-            except Exception as e:
-                print(e)
-                print("Error in determine tags")
+            for i, taginfo in enumerate(machinetags):
+                if not taginfo["ManualChecks"] or taginfo["ManualChecks"](loan):
+                    if predictions[i][0][1] > taginfo["Threshold"]:
+                        print("ML tag")
+                        this_loan.add(taginfo["ID"])
+            if "17" and "14" in this_loan:
+                this_loan.remove("14")
+            if "17" in this_loan:
+                this_loan.add("16")
+        except Exception as e:
+            print(e)
+            print("Error in determine tags")
     kivatag(tags)
 
 
@@ -438,21 +439,19 @@ def getquery(form, lasttime=None):
     :return queryresults:
     """
     queryresults = []
-    info = requests.get("http://api.kivaws.org/v1/loans/search.json",
-                        params=form).text
-    info = json.loads(info)
-    for i in range(1, int(info["paging"]["pages"])):
-        form["page"] = str(i)
-        response = requests.get("http://api.kivaws.org/v1/loans/search.json",
-                                params=form)
+    for i in range(1, 50):
+        response = requests.get("https://api.kivaws.org/graphql",
+                                json={"query":form,
+                                      "variables": {"offset": i*20}})
         time.sleep(60 / 55)
-        loans = json.loads(response.text)["loans"]
-        queryresults.append(loans)
+        loans = json.loads(response.text)["data"]["lend"]["loans"]["values"]
+        queryresults += loans
         if lasttime:
             out = False
             for loan in loans:
                 postedtime = datetime.fromtimestamp(time.mktime(
-                    time.strptime(loan["posted_date"], "%Y-%m-%dT%H:%M:%SZ")))
+                    time.strptime(loan["fundraisingDate"],
+                                  "%Y-%m-%dT%H:%M:%SZ")))
                 if lasttime > postedtime:
                     out = True
                     break

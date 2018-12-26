@@ -20,6 +20,46 @@ import time
 from datetime import timedelta
 from datetime import datetime
 
+form = """
+query getLoans ($offset: Int){
+  lend {
+    loans (limit: 20, offset: $offset, filters: {distributionModel: field_partner},
+           sortBy: newest){
+      values {
+        id,
+        fundraisingDate,
+        description,
+        use,
+        sector {
+          name
+        },
+        activity {
+          name
+        },
+        borrowers {
+          id,
+          gender
+        },
+        ... on LoanPartner {
+          partnerId
+        },
+        geocode {
+          country {
+            name,
+            isoCode
+          },
+          city
+        },
+        loanAmount,
+        terms {
+          lenderRepaymentTerm
+        },
+      }
+    }
+  }
+}
+"""
+
 while True:
     try:
         lasttried = open("time.txt")
@@ -27,11 +67,6 @@ while True:
             lasttime = datetime.fromtimestamp(
                 time.mktime(time.strptime(line, "%d %b %Y %H:%M:%S")))
         lasttried.close()
-        form = {
-            "status": "fundraising",
-            "page": "1",
-            "app_id": "com.woodside.autotag"
-        }
         print("Getting the initial list of loans.")
         loanlist = auxilary.getquery(form, lasttime)
         loanids = ""
@@ -40,22 +75,14 @@ while True:
         timetowrite = lasttime
 
         print("Getting the details of all of the loans.")
-        for loans in loanlist:
-            for loan in loans:
-                postedtime = datetime.fromtimestamp(time.mktime(
-                    time.strptime(loan["posted_date"], "%Y-%m-%dT%H:%M:%SZ")))
-                if postedtime - timetowrite > timedelta(microseconds=1):
-                    timetowrite = postedtime
-                if lasttime - postedtime > timedelta(microseconds=1):
-                    continue
-                loanids += str(loan["id"]) + ","
-                total += 1
-                if total == 100:
-                    total = 0
-                    loanids = loanids[:-1]
-                    everyloan.append(auxilary.getinfo(loanids))
-                    loanids = ""
-        everyloan.append(auxilary.getinfo(loanids[:-1]))
+        for loan in loanlist:
+            postedtime = datetime.fromtimestamp(time.mktime(
+                time.strptime(loan["fundraisingDate"], "%Y-%m-%dT%H:%M:%SZ")))
+            if postedtime - timetowrite > timedelta(microseconds=1):
+                timetowrite = postedtime
+            if lasttime - postedtime > timedelta(microseconds=1):
+                continue
+            everyloan.append(loan)
         print("complete1")
         auxilary.determinetags(everyloan)
         lasttried = open("time.txt", "w+")
